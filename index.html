@@ -4,11 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Novelou</title>
+
+  <!-- Google Font: Pacifico -->
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
+
   <style>
     body {
       margin: 0;
       font-family: 'Helvetica Neue', sans-serif;
-      background-color: #fdd835;
+      background-color: #FFD02F;
       color: #0c1a1a;
       display: flex;
       flex-direction: column;
@@ -17,7 +21,23 @@
       text-align: center;
       height: 100vh;
       padding: 20px;
+      overflow: hidden;
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      opacity: 0;
+      animation: fadeIn 1s ease-out forwards;
+    }
+
+    .fade-in.delay-1 { animation-delay: 0.3s; }
+    .fade-in.delay-2 { animation-delay: 0.6s; }
+    .fade-in.delay-3 { animation-delay: 0.9s; }
+    .fade-in.delay-4 { animation-delay: 1.2s; }
 
     img.logo {
       max-width: 200px;
@@ -29,6 +49,7 @@
       font-size: 1.6rem;
       margin-bottom: 20px;
       line-height: 1.4;
+      font-family: 'Pacifico', cursive;
     }
 
     p {
@@ -41,30 +62,34 @@
     a.button {
       display: inline-block;
       padding: 14px 24px;
-      background-color: #000;
-      color: #fff;
+      background-color: #fff;
+      color: #000;
       font-size: 1rem;
       border-radius: 8px;
       text-decoration: none;
+      font-weight: bold;
+      border: 2px solid #000;
+      transition: background 0.2s, color 0.2s;
     }
 
     a.button:hover {
-      background-color: #333;
+      background-color: #000;
+      color: #fff;
     }
   </style>
 </head>
 <body>
-  <img src="logo.png" alt="Novelou Logo" class="logo" />
+  <img src="logo.png" alt="Novelou Logo" class="logo fade-in delay-1" />
+
+  <h1 class="fade-in delay-2">I promised my kids one story, every night, made just for them.</h1>
   
-  <h1>I promised my kids one story, every night, made just for them.</h1>
-  
-  <p>
+  <p class="fade-in delay-3">
     Over time, those stories became a ritual — a moment of magic, laughter, comfort, and wonder.<br><br>
     That promise became <strong>Novelou</strong> — a place where every child becomes the hero of their own bedtime adventure.<br><br>
     Your child’s name. Their world. Their imagination.<br>
     One personalized tale at a time.
   </p>
 
-  <a class="button" href="https://apps.apple.com" target="_blank">Download on the App Store</a>
+  <a class="button fade-in delay-4" href="https://apps.apple.com" target="_blank">Download on the App Store</a>
 </body>
 </html>
