@@ -103,16 +103,17 @@
       height: 100%;
       object-fit: cover;
       opacity: 0;
-      animation: slideshow 18s infinite;
+      animation: slideshow 24s infinite;
     }
 
     .slideshow img:nth-child(1) { animation-delay: 0s; }
     .slideshow img:nth-child(2) { animation-delay: 6s; }
     .slideshow img:nth-child(3) { animation-delay: 12s; }
+    .slideshow img:nth-child(4) { animation-delay: 18s; }
 
     @keyframes slideshow {
-      0%, 33.33% { opacity: 1; }
-      50%, 100% { opacity: 0; }
+      0%, 20% { opacity: 1; }
+      25%, 100% { opacity: 0; }
     }
 
     /* FADE IN */
@@ -130,7 +131,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Ensure text always above slideshow */
+    /* Ensure text is always above slideshow */
     .content * {
       position: relative;
       z-index: 2;
@@ -151,11 +152,12 @@
   </div>
 
   <section class="content">
-    <!-- Background slideshow -->
+    <!-- Background slideshow with local images -->
     <div class="slideshow">
-      <img src="https://images.unsplash.com/photo-1504150552455-7e66404bb147?auto=format&fit=crop&w=1950&q=80" alt="">
-      <img src="https://images.unsplash.com/photo-1603984171652-3c297e8d32f3?auto=format&fit=crop&w=1950&q=80" alt="">
-      <img src="https://images.unsplash.com/photo-1611078489935-03a0adf5cb8e?auto=format&fit=crop&w=1950&q=80" alt="">
+      <img src="images/landing-1.png" alt="Story scene 1">
+      <img src="images/landing-2.png" alt="Story scene 2">
+      <img src="images/landing-3.png" alt="Story scene 3">
+      <img src="images/landing-4.png" alt="Story scene 4">
     </div>
 
     <h1 class="fade-in fade-2">I promised my kids one story, every night, made just for them.</h1>
