@@ -2,102 +2,135 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Kaleido Glide</title>
+  <title>#StayInRange – Kaleido</title>
   <style>
-    body { margin:0; background:#eef; overflow:hidden; font-family:sans-serif; }
-    canvas { display:block; background: #cce; }
-    #ui { position:absolute; top:10px; left:10px; color:#333; }
-    #gameOver, #soundToggle { margin-right:10px; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #eef;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #222;
+      font-size: 18px;
+    }
+    #gameOver, #soundToggle {
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="ui">
-    <button id="soundToggle">🔊Sound: On</button>
+    <button id="soundToggle">🔊 Sound: On</button>
     <span>Score: <span id="score">0</span></span>
     <button id="gameOver" style="display:none;">Restart</button>
   </div>
   <canvas id="game"></canvas>
 
   <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    const scoreEl = document.getElementById('score');
-    const restartBtn = document.getElementById('gameOver');
-    const soundToggle = document.getElementById('soundToggle');
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    let hero = { x:50, y:canvas.height/2, vy:0 };
-    const gravity = 0.4;
-    const jump = -8;
-    const upperBound = 100;
-    const lowerBound = canvas.height - 100;
-    let score = 0, running = false;
+    const scoreEl = document.getElementById("score");
+    const restartBtn = document.getElementById("gameOver");
+    const soundToggle = document.getElementById("soundToggle");
+
     let soundOn = true;
+    let score = 0;
+    let running = false;
 
-    // load images (placeholder squares, replace with brand assets)
-    const heroImg = new Image();
-    heroImg.src = 'https://via.placeholder.com/60/00aa00?text=Pump'; // replace with Kaleido hero
-    const bgImg = new Image();
-    bgImg.src = 'https://via.placeholder.com/800x600/ccf'; // optional background
+    const hero = {
+      x: 100,
+      y: canvas.height / 2,
+      vy: 0,
+      size: 40
+    };
 
-    // sounds
-    const sndJump = new Audio('https://www.soundjay.com/button/beep-07.mp3');
-    const sndCrash = new Audio('https://www.soundjay.com/buttons/beep-10.mp3');
+    const GRAVITY = 0.5;
+    const JUMP = -8;
+    const UPPER_BOUND = 100;
+    const LOWER_BOUND = canvas.height - 100;
 
-    document.addEventListener('keydown', e => {
-      if (e.code === 'Space' && running) {
-        hero.vy = jump;
-        if (soundOn) sndJump.play();
-      } else if (e.code === 'Space' && !running) {
-        startGame();
+    // Sound
+    const jumpSound = new Audio("https://www.soundjay.com/button/beep-07.mp3");
+    const crashSound = new Audio("https://www.soundjay.com/buttons/beep-10.mp3");
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        if (running) {
+          hero.vy = JUMP;
+          if (soundOn) jumpSound.play();
+        } else {
+          startGame();
+        }
       }
     });
-    restartBtn.addEventListener('click', startGame);
-    soundToggle.addEventListener('click', () => {
+
+    restartBtn.addEventListener("click", startGame);
+    soundToggle.addEventListener("click", () => {
       soundOn = !soundOn;
-      soundToggle.textContent = soundOn ? '🔊Sound: On' : '🔇Sound: Off';
+      soundToggle.textContent = soundOn ? "🔊 Sound: On" : "🔇 Sound: Off";
     });
 
     function startGame() {
-      hero.y = canvas.height/2;
+      hero.y = canvas.height / 2;
       hero.vy = 0;
       score = 0;
       running = true;
-      restartBtn.style.display = 'none';
-      loop();
+      restartBtn.style.display = "none";
+      requestAnimationFrame(gameLoop);
     }
 
-    function loop() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      if (bgImg.complete) ctx.drawImage(bgImg,0,0,canvas.width,canvas.height);
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // draw bounds
-      ctx.fillStyle = 'rgba(255,0,0,0.2)';
-      ctx.fillRect(0, 0, canvas.width, upperBound);
-      ctx.fillRect(0, lowerBound, canvas.width, canvas.height-lowerBound);
+      // Draw "danger zones"
+      ctx.fillStyle = "#ffcccc";
+      ctx.fillRect(0, 0, canvas.width, UPPER_BOUND);
+      ctx.fillRect(0, LOWER_BOUND, canvas.width, canvas.height - LOWER_BOUND);
 
-      // update hero
-      hero.vy += gravity;
+      // Draw boundaries
+      ctx.strokeStyle = "#ff0000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, UPPER_BOUND);
+      ctx.lineTo(canvas.width, UPPER_BOUND);
+      ctx.moveTo(0, LOWER_BOUND);
+      ctx.lineTo(canvas.width, LOWER_BOUND);
+      ctx.stroke();
+
+      // Update and draw hero
+      hero.vy += GRAVITY;
       hero.y += hero.vy;
-      ctx.drawImage(heroImg, hero.x, hero.y-30, 60, 60);
 
-      // score
+      ctx.fillStyle = "#00aa00";
+      ctx.fillRect(hero.x, hero.y, hero.size, hero.size);
+
+      // Update score
       score++;
       scoreEl.textContent = score;
 
-      // check crash
-      if (hero.y < upperBound || hero.y > lowerBound) {
+      // Check for collisions
+      if (hero.y < UPPER_BOUND || hero.y + hero.size > LOWER_BOUND) {
         running = false;
-        restartBtn.style.display = 'inline-block';
-        if (soundOn) sndCrash.play();
+        restartBtn.style.display = "inline-block";
+        if (soundOn) crashSound.play();
         return;
       }
 
-      requestAnimationFrame(loop);
+      if (running) requestAnimationFrame(gameLoop);
     }
 
-    // auto-start
+    // Start automatically
     startGame();
   </script>
 </body>
