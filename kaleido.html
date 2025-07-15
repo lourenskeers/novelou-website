@@ -95,6 +95,21 @@
     const insulinImg = new Image();
     insulinImg.src = "insulin.png";
 
+    // Track asset loading
+    let assetsLoaded = 0;
+    const totalAssets = 3;
+
+    function checkAllAssetsLoaded() {
+      assetsLoaded++;
+      if (assetsLoaded === totalAssets) {
+        checkOrientation(); // Only show start screen after assets are ready
+      }
+    }
+
+    heroImg.onload = checkAllAssetsLoaded;
+    pizzaImg.onload = checkAllAssetsLoaded;
+    insulinImg.onload = checkAllAssetsLoaded;
+
     function showStartMsg() {
       startMsg.style.display = "block";
       startMsg.textContent = isMobile ? "Tap to Start" : "Press Space to Start";
@@ -122,6 +137,8 @@
     }
 
     function startGame() {
+      if (assetsLoaded < totalAssets) return;
+
       resetGame();
       running = true;
       startMsg.style.display = "none";
@@ -169,7 +186,7 @@
         const img = ob.type === "pizza" ? pizzaImg : insulinImg;
         ctx.drawImage(img, ob.x - ob.size / 2, ob.y - ob.size / 2, ob.size, ob.size);
 
-        // Collision
+        // Collision detection
         if (
           hero.x < ob.x + ob.size &&
           hero.x + hero.size > ob.x - ob.size &&
@@ -190,12 +207,12 @@
       score++;
       scoreEl.textContent = score;
 
-      // Spawn obstacles
+      // Spawn new obstacles based on score
       if (Math.random() < 0.01 + score / 20000) {
         spawnObstacle();
       }
 
-      // Crash detection
+      // Check for out-of-bounds
       if (hero.y < UPPER_BOUND || hero.y + hero.size > LOWER_BOUND) {
         running = false;
         finalScoreEl.textContent = score;
@@ -236,8 +253,6 @@
 
     restartBtn.addEventListener("click", startGame);
     window.addEventListener("resize", checkOrientation);
-
-    checkOrientation();
   </script>
 </body>
 </html>
