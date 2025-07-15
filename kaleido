@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kaleido Glide</title>
+  <style>
+    body { margin:0; background:#eef; overflow:hidden; font-family:sans-serif; }
+    canvas { display:block; background: #cce; }
+    #ui { position:absolute; top:10px; left:10px; color:#333; }
+    #gameOver, #soundToggle { margin-right:10px; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <button id="soundToggle">🔊Sound: On</button>
+    <span>Score: <span id="score">0</span></span>
+    <button id="gameOver" style="display:none;">Restart</button>
+  </div>
+  <canvas id="game"></canvas>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const restartBtn = document.getElementById('gameOver');
+    const soundToggle = document.getElementById('soundToggle');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let hero = { x:50, y:canvas.height/2, vy:0 };
+    const gravity = 0.4;
+    const jump = -8;
+    const upperBound = 100;
+    const lowerBound = canvas.height - 100;
+    let score = 0, running = false;
+    let soundOn = true;
+
+    // load images (placeholder squares, replace with brand assets)
+    const heroImg = new Image();
+    heroImg.src = 'https://via.placeholder.com/60/00aa00?text=Pump'; // replace with Kaleido hero
+    const bgImg = new Image();
+    bgImg.src = 'https://via.placeholder.com/800x600/ccf'; // optional background
+
+    // sounds
+    const sndJump = new Audio('https://www.soundjay.com/button/beep-07.mp3');
+    const sndCrash = new Audio('https://www.soundjay.com/buttons/beep-10.mp3');
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space' && running) {
+        hero.vy = jump;
+        if (soundOn) sndJump.play();
+      } else if (e.code === 'Space' && !running) {
+        startGame();
+      }
+    });
+    restartBtn.addEventListener('click', startGame);
+    soundToggle.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundToggle.textContent = soundOn ? '🔊Sound: On' : '🔇Sound: Off';
+    });
+
+    function startGame() {
+      hero.y = canvas.height/2;
+      hero.vy = 0;
+      score = 0;
+      running = true;
+      restartBtn.style.display = 'none';
+      loop();
+    }
+
+    function loop() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if (bgImg.complete) ctx.drawImage(bgImg,0,0,canvas.width,canvas.height);
+
+      // draw bounds
+      ctx.fillStyle = 'rgba(255,0,0,0.2)';
+      ctx.fillRect(0, 0, canvas.width, upperBound);
+      ctx.fillRect(0, lowerBound, canvas.width, canvas.height-lowerBound);
+
+      // update hero
+      hero.vy += gravity;
+      hero.y += hero.vy;
+      ctx.drawImage(heroImg, hero.x, hero.y-30, 60, 60);
+
+      // score
+      score++;
+      scoreEl.textContent = score;
+
+      // check crash
+      if (hero.y < upperBound || hero.y > lowerBound) {
+        running = false;
+        restartBtn.style.display = 'inline-block';
+        if (soundOn) sndCrash.play();
+        return;
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    // auto-start
+    startGame();
+  </script>
+</body>
+</html>
