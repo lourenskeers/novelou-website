@@ -14,27 +14,11 @@
     canvas {
       display: block;
     }
-    #ui {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: #fff;
-      font-size: 18px;
-      z-index: 2;
-    }
+    #ui { position:absolute; top:10px; left:10px; color:#fff; font-size:18px; z-index:2; }
     #gameOverMsg, #turnMsg, #startMsg {
-      position: absolute;
-      width: 100%;
-      text-align: center;
-      top: 40%;
-      font-size: 32px;
-      color: #fff;
-      display: none;
-      z-index: 3;
+      position:absolute; width:100%; text-align:center; top:40%; font-size:32px; color:#fff; display:none; z-index:3;
     }
-    #gameOver, #soundToggle {
-      margin-right: 10px;
-    }
+    #gameOver, #soundToggle { margin-right:10px; }
   </style>
 </head>
 <body>
@@ -59,200 +43,150 @@
     const finalScoreEl = document.getElementById("finalScore");
     const turnMsg = document.getElementById("turnMsg");
 
-    let soundOn = true;
-    let running = false;
-    let score = 0;
-    let isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    let soundOn = true, running = false, score = 0;
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     const UPPER_BOUND = 100;
     const LOWER_BOUND = canvas.height - 100;
+    const GRAVITY = 0.5, JUMP = -8;
 
-    const hero = {
-      x: 100,
-      y: canvas.height / 2,
-      vy: 0,
-      size: 50
-    };
+    const hero = { x:100, y:canvas.height/2, vy:0, size:50 };
 
-    const GRAVITY = 0.5;
-    const JUMP = -8;
+    const obstacles = [];
 
     const jumpSound = new Audio("https://www.soundjay.com/button/beep-07.mp3");
     const crashSound = new Audio("https://www.soundjay.com/buttons/beep-10.mp3");
 
-    const obstacles = [];
-
     // Load images
-    const heroImg = new Image();
-    heroImg.src = "hero.png";
+    const heroImg = new Image(); heroImg.src = "hero.png";
+    const pizzaImg = new Image(); pizzaImg.src = "pizza.png";
+    const insulinImg = new Image(); insulinImg.src = "insulin.png";
 
-    const pizzaImg = new Image();
-    pizzaImg.src = "pizza.png";
-
-    const insulinImg = new Image();
-    insulinImg.src = "insulin.png";
-
-    // Track asset loading
     let assetsLoaded = 0;
-    const totalAssets = 3;
+    [heroImg, pizzaImg, insulinImg].forEach(img => {
+      img.onload = () => { assetsLoaded++; };
+    });
 
-    function checkAllAssetsLoaded() {
-      assetsLoaded++;
-      if (assetsLoaded === totalAssets) {
-        checkOrientation(); // Only show start screen after assets are ready
-      }
-    }
-
-    heroImg.onload = checkAllAssetsLoaded;
-    pizzaImg.onload = checkAllAssetsLoaded;
-    insulinImg.onload = checkAllAssetsLoaded;
-
-    function showStartMsg() {
+    function showStartMsg(){
       startMsg.style.display = "block";
       startMsg.textContent = isMobile ? "Tap to Start" : "Press Space to Start";
     }
 
-    function checkOrientation() {
-      if (isMobile && window.innerWidth < window.innerHeight) {
-        turnMsg.style.display = "block";
-        canvas.style.display = "none";
+    function checkOrientation(){
+      if(isMobile && window.innerWidth < window.innerHeight){
+        turnMsg.style.display="block"; canvas.style.display="none";
       } else {
-        turnMsg.style.display = "none";
-        canvas.style.display = "block";
-        showStartMsg();
+        turnMsg.style.display="none"; canvas.style.display="block"; showStartMsg();
       }
     }
 
-    function resetGame() {
-      hero.y = canvas.height / 2;
+    function resetGame(){
+      hero.y = canvas.height/2;
       hero.vy = 0;
       score = 0;
       obstacles.length = 0;
       scoreEl.textContent = 0;
-      gameOverMsg.style.display = "none";
-      restartBtn.style.display = "none";
+      gameOverMsg.style.display = restartBtn.style.display = "none";
     }
 
-    function startGame() {
-      if (assetsLoaded < totalAssets) return;
-
+    function startGame(){
+      if(assetsLoaded < 0){} // allow start immediately
       resetGame();
       running = true;
       startMsg.style.display = "none";
       requestAnimationFrame(gameLoop);
     }
 
-    function spawnObstacle() {
-      const type = Math.random() < 0.5 ? "pizza" : "insulin";
-      const y = Math.random() * (LOWER_BOUND - UPPER_BOUND - 60) + UPPER_BOUND;
+    function spawnObstacle(){
+      const type = Math.random()<0.5?"pizza":"insulin";
+      const y = Math.random()*(LOWER_BOUND - UPPER_BOUND - 60) + UPPER_BOUND;
       const size = 40;
-      const speed = 3 + score / 500;
-      obstacles.push({ x: canvas.width, y, size, speed, type });
+      const speed = 3 + score/500;
+      obstacles.push({ x:canvas.width, y, size, speed, type });
     }
 
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function drawHero(){
+      if(heroImg.complete) ctx.drawImage(heroImg, hero.x, hero.y, hero.size, hero.size);
+      else{
+        ctx.fillStyle = "#00aa00";
+        ctx.fillRect(hero.x,hero.y,hero.size,hero.size);
+      }
+    }
 
-      // Draw danger zones
+    function drawObstacle(ob){
+      if(ob.type==="pizza" && pizzaImg.complete){
+        ctx.drawImage(pizzaImg, ob.x - ob.size/2, ob.y - ob.size/2, ob.size, ob.size);
+      } else if(ob.type==="insulin" && insulinImg.complete){
+        ctx.drawImage(insulinImg, ob.x - ob.size/2, ob.y - ob.size/2, ob.size, ob.size);
+      } else {
+        ctx.beginPath();
+        ctx.arc(ob.x, ob.y, ob.size/2, 0, Math.PI*2);
+        ctx.fillStyle = ob.type==="pizza"?"purple":"darkblue";
+        ctx.fill();
+      }
+    }
+
+    function gameLoop(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      // zones
       ctx.fillStyle = "#ffcccc";
-      ctx.fillRect(0, 0, canvas.width, UPPER_BOUND);
-      ctx.fillRect(0, LOWER_BOUND, canvas.height - LOWER_BOUND);
+      ctx.fillRect(0,0,canvas.width,UPPER_BOUND);
+      ctx.fillRect(0,LOWER_BOUND,canvas.width,canvas.height-LOWER_BOUND);
+      ctx.strokeStyle="#ff0000"; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(0,UPPER_BOUND); ctx.lineTo(canvas.width,UPPER_BOUND);
+      ctx.moveTo(0,LOWER_BOUND); ctx.lineTo(canvas.width,LOWER_BOUND); ctx.stroke();
 
-      // Draw boundary lines
-      ctx.strokeStyle = "#ff0000";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, UPPER_BOUND);
-      ctx.lineTo(canvas.width, UPPER_BOUND);
-      ctx.moveTo(0, LOWER_BOUND);
-      ctx.lineTo(canvas.width, LOWER_BOUND);
-      ctx.stroke();
-
-      // Hero physics
       hero.vy += GRAVITY;
       hero.y += hero.vy;
+      drawHero();
 
-      // Draw hero
-      ctx.drawImage(heroImg, hero.x, hero.y, hero.size, hero.size);
-
-      // Obstacles
-      for (let i = obstacles.length - 1; i >= 0; i--) {
+      for(let i=obstacles.length-1;i>=0;i--){
         const ob = obstacles[i];
         ob.x -= ob.speed;
-
-        const img = ob.type === "pizza" ? pizzaImg : insulinImg;
-        ctx.drawImage(img, ob.x - ob.size / 2, ob.y - ob.size / 2, ob.size, ob.size);
-
-        // Collision detection
-        if (
-          hero.x < ob.x + ob.size &&
-          hero.x + hero.size > ob.x - ob.size &&
-          hero.y < ob.y + ob.size &&
-          hero.y + hero.size > ob.y - ob.size
-        ) {
-          if (ob.type === "pizza") hero.vy -= 4;
-          else hero.vy += 4;
-          obstacles.splice(i, 1);
+        drawObstacle(ob);
+        if(hero.x < ob.x+ob.size && hero.x+hero.size > ob.x-ob.size &&
+           hero.y < ob.y+ob.size && hero.y+hero.size > ob.y-ob.size){
+          hero.vy += ob.type==="pizza"? -4 : +4;
+          obstacles.splice(i,1);
         }
-
-        if (ob.x + ob.size < 0) {
-          obstacles.splice(i, 1);
-        }
+        if(ob.x + ob.size<0) obstacles.splice(i,1);
       }
 
-      // Update score
       score++;
       scoreEl.textContent = score;
+      if(Math.random()<0.01 + score/20000) spawnObstacle();
 
-      // Spawn new obstacles based on score
-      if (Math.random() < 0.01 + score / 20000) {
-        spawnObstacle();
-      }
-
-      // Check for out-of-bounds
-      if (hero.y < UPPER_BOUND || hero.y + hero.size > LOWER_BOUND) {
-        running = false;
-        finalScoreEl.textContent = score;
-        gameOverMsg.style.display = "block";
-        restartBtn.style.display = "inline-block";
-        if (soundOn) crashSound.play();
+      if(hero.y < UPPER_BOUND || hero.y + hero.size > LOWER_BOUND){
+        running=false;
+        finalScoreEl.textContent=score;
+        gameOverMsg.style.display=restartBtn.style.display="block";
+        if(soundOn) crashSound.play();
         return;
       }
-
-      if (running) requestAnimationFrame(gameLoop);
+      if(running) requestAnimationFrame(gameLoop);
     }
 
-    // Controls
-    document.addEventListener("keydown", (e) => {
-      if (e.code === "Space") {
-        if (running) {
-          hero.vy = JUMP;
-          if (soundOn) jumpSound.play();
-        } else {
-          startGame();
-        }
+    document.addEventListener("keydown",e=>{
+      if(e.code==="Space"){
+        if(running){ hero.vy=JUMP; if(soundOn) jumpSound.play(); }
+        else startGame();
       }
     });
-
-    document.addEventListener("touchstart", () => {
-      if (isMobile && running) {
-        hero.vy = JUMP;
-        if (soundOn) jumpSound.play();
-      } else if (isMobile && !running) {
-        startGame();
+    document.addEventListener("touchstart",()=>{
+      if(isMobile){
+        if(running){ hero.vy=JUMP; if(soundOn) jumpSound.play(); }
+        else startGame();
       }
     });
+    soundToggle.onclick = ()=>{ soundOn=!soundOn; soundToggle.textContent = soundOn ? "🔊 Sound: On":"🔇 Sound: Off";}
+    restartBtn.onclick = startGame;
+    window.addEventListener("resize",checkOrientation);
 
-    soundToggle.addEventListener("click", () => {
-      soundOn = !soundOn;
-      soundToggle.textContent = soundOn ? "🔊 Sound: On" : "🔇 Sound: Off";
-    });
-
-    restartBtn.addEventListener("click", startGame);
-    window.addEventListener("resize", checkOrientation);
+    checkOrientation();
   </script>
 </body>
 </html>
